@@ -1,0 +1,9 @@
+2025-12-09 15:59:44 | predio/logs/sensors | Sensores conectados
+2025-12-09 15:59:46 | predio/logs/alarms | Alarme conectado
+2025-12-09 16:00:09 | COMMAND | getStatus|porta_secundaria
+2025-12-09 16:00:09 | predio/logs/sensors | porta_secundaria: FECHADA
+2025-12-09 16:00:20 | SYSTEM | Central desligada.
+2025-12-09 16:00:20 | COMMAND | deactivateAlarms
+2025-12-09 16:00:20 | predio/logs/alarms | Alarme desconectado
+2025-12-09 16:00:20 | COMMAND | deactivateSensors
+2025-12-09 16:00:20 | predio/logs/sensors | Sensores desconectados
