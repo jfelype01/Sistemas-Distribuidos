@@ -1,0 +1,11 @@
+2025-12-09 16:06:26 | COMMAND | getStatusAll
+2025-12-09 16:06:26 | predio/logs/sensors | porta_secundaria: FECHADA
+porta_fundos: FECHADA
+porta_principal: FECHADA
+
+2025-12-09 16:06:39 | SYSTEM | Conexão perdida: Conexão perdida
+2025-12-09 23:00:46 | COMMAND | getStatus|porta_principal
+2025-12-09 23:00:48 | COMMAND | setStatus|porta_principal;true
+2025-12-09 23:00:53 | COMMAND | setStatus|porta_secundaria;true
+2025-12-09 23:00:55 | COMMAND | deactivateAlarms
+2025-12-09 23:00:55 | COMMAND | deactivateSensors
