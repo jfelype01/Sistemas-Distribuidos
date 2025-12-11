@@ -17,40 +17,72 @@ public class CentralGUI extends JFrame {
     private static final String LOG_FILE = "./log/central_log.txt";
 
     public CentralGUI() {
-    	
         super("Central de Segurança – Interface Gráfica");
 
+        Color bg = new Color(40, 40, 40);
+        Color panelBG = new Color(55, 55, 55);
+        Color buttonBG = new Color(70, 70, 70);
+        Color buttonBorder = new Color(110, 110, 110);
+        Color textColor = new Color(230, 230, 230);
+
+        UIManager.put("OptionPane.background", bg);
+        UIManager.put("Panel.background", bg);
+        UIManager.put("OptionPane.messageForeground", textColor);
+
         setLayout(new BorderLayout());
-        setSize(600, 500);
+        setSize(700, 550);
+        getContentPane().setBackground(bg);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
+        JLabel titulo = new JLabel("Central de Monitoramento", SwingConstants.CENTER);
+        titulo.setFont(new Font("Arial", Font.BOLD, 26));
+        titulo.setForeground(textColor);
+        titulo.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        add(titulo, BorderLayout.NORTH);
+
         logArea = new JTextArea();
         logArea.setEditable(false);
+        logArea.setFont(new Font("Consolas", Font.PLAIN, 14));
+        logArea.setBackground(new Color(25, 25, 25));
+        logArea.setForeground(new Color(0, 220, 0));
+        logArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
         JScrollPane scroll = new JScrollPane(logArea);
+        scroll.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         add(scroll, BorderLayout.CENTER);
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(4, 2, 10, 10));
+        JPanel panel = new JPanel(new GridLayout(2, 1, 10, 10));
+        panel.setBackground(bg);
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JButton btnStatusSensor = new JButton("Ver status de 1 sensor");
-        JButton btnStatusAll = new JButton("Ver todos sensores");
-        JButton btnAbrir = new JButton("Abrir entrada");
-        JButton btnFechar = new JButton("Fechar entrada");
-        JButton btnFecharTudo = new JButton("Fechar todas entradas");
-        JButton btnAlarmStatus = new JButton("Status do alarme");
-        JButton btnToggleAlarm = new JButton("Alternar alarme");
-        JButton btnSair = new JButton("Sair");
+        JPanel linha1 = new JPanel(new GridLayout(1, 4, 10, 10));
+        JPanel linha2 = new JPanel(new GridLayout(1, 4, 10, 10));
+        linha1.setBackground(bg);
+        linha2.setBackground(bg);
 
-        panel.add(btnStatusSensor);
-        panel.add(btnStatusAll);
-        panel.add(btnAbrir);
-        panel.add(btnFechar);
-        panel.add(btnFecharTudo);
-        panel.add(btnAlarmStatus);
-        panel.add(btnToggleAlarm);
-        panel.add(btnSair);
+        JButton btnStatusSensor = criarBotao("Status de 1 Sensor", buttonBG, textColor, buttonBorder);
+        JButton btnStatusAll    = criarBotao("Todos Sensores", buttonBG, textColor, buttonBorder);
+        JButton btnAbrir        = criarBotao("Abrir Entrada", buttonBG, textColor, buttonBorder);
+        JButton btnFechar       = criarBotao("Fechar Entrada", buttonBG, textColor, buttonBorder);
 
+        JButton btnFecharTudo   = criarBotao("Fechar Todas", buttonBG, textColor, buttonBorder);
+        JButton btnAlarmStatus  = criarBotao("Status Alarme", buttonBG, textColor, buttonBorder);
+        JButton btnToggleAlarm  = criarBotao("Alternar Alarme", buttonBG, textColor, buttonBorder);
+        JButton btnSair         = criarBotao("Sair", new Color(120, 30, 30), Color.WHITE, buttonBorder);
+
+        linha1.add(btnStatusSensor);
+        linha1.add(btnStatusAll);
+        linha1.add(btnAbrir);
+        linha1.add(btnFechar);
+
+        linha2.add(btnFecharTudo);
+        linha2.add(btnAlarmStatus);
+        linha2.add(btnToggleAlarm);
+        linha2.add(btnSair);
+
+        panel.add(linha1);
+        panel.add(linha2);
         add(panel, BorderLayout.SOUTH);
 
         conectarMQTT();
@@ -69,8 +101,12 @@ public class CentralGUI extends JFrame {
                 enviarComando("deactivateSensors", null);
 
                 salvarLog("SYSTEM", "Central desligada.");
-                
                 client.disconnect();
+            } catch (Exception ex) {
+            	ex.printStackTrace();
+            }
+                
+            try {
                 System.exit(0);
 
             } catch (Exception ex) {
@@ -79,6 +115,17 @@ public class CentralGUI extends JFrame {
         });
 
         setVisible(true);
+    }
+
+    private JButton criarBotao(String texto, Color bg, Color fg, Color borda) {
+        JButton btn = new JButton(texto);
+        btn.setFocusPainted(false);
+        btn.setBackground(bg);
+        btn.setForeground(fg);
+        btn.setFont(new Font("Arial", Font.BOLD, 14));
+        btn.setBorder(BorderFactory.createLineBorder(borda, 2));
+        btn.setPreferredSize(new Dimension(140, 45));
+        return btn;
     }
 
     private void conectarMQTT() {
@@ -93,13 +140,10 @@ public class CentralGUI extends JFrame {
                 public void messageArrived(String topic, MqttMessage message) {
                     String payload = new String(message.getPayload());
                     logArea.append("[" + topic + "] " + payload + "\n");
-                    
                     salvarLog(topic, payload);
                 }
-
                 @Override public void connectionLost(Throwable cause) {
-                	System.out.println("Conexão perdida: " + cause.getMessage());
-                    salvarLog("SYSTEM", "Conexão perdida: " + cause.getMessage());
+                    logArea.append("Conexão perdida: " + cause.getMessage() + "\n");
                 }
                 @Override public void deliveryComplete(IMqttDeliveryToken token) {}
             });
@@ -111,13 +155,10 @@ public class CentralGUI extends JFrame {
 
         } catch (Exception e) {
             logArea.append("Erro ao conectar MQTT: " + e.getMessage() + "\n");
-
-            salvarLog("SYSTEM", "Erro fatal: " + e.getMessage());
         }
     }
 
     private void enviarComando(String comando, String dados) {
-
         try {
             String payload = (dados != null) ? comando + "|" + dados : comando;
 
@@ -140,13 +181,9 @@ public class CentralGUI extends JFrame {
         };
 
         String sensor = (String) JOptionPane.showInputDialog(
-                this,
-                "Selecione o sensor:",
-                "Sensores",
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                sensores,
-                sensores[0]
+            this, "Selecione o sensor:",
+            "Sensores", JOptionPane.QUESTION_MESSAGE,
+            null, sensores, sensores[0]
         );
 
         if (sensor != null)
@@ -161,13 +198,9 @@ public class CentralGUI extends JFrame {
         };
 
         String sensor = (String) JOptionPane.showInputDialog(
-                this,
-                "Selecione o sensor:",
-                "Sensores",
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                sensores,
-                sensores[0]
+            this, "Selecione o sensor:",
+            "Sensores", JOptionPane.QUESTION_MESSAGE,
+            null, sensores, sensores[0]
         );
 
         if (sensor != null)
@@ -177,12 +210,12 @@ public class CentralGUI extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(CentralGUI::new);
     }
-    
+
     private static void salvarLog(String topic, String mensagem) {
         try (FileWriter writer = new FileWriter(LOG_FILE, true)) {
 
             String tempo = LocalDateTime.now()
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
             writer.write(tempo + " | " + topic + " | " + mensagem + "\n");
 
